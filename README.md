@@ -1,15 +1,16 @@
 # Potato Disease Classification
 
-A deep learning-based system that classifies potato leaf images into **Early Blight**, **Late Blight**, or **Healthy** categories using a Convolutional Neural Network (CNN) built with TensorFlow/Keras.
+A cnn to classify potato leaf images into Early Blight, Late Blight, or Healthy categories using  TensorFlow/Keras.
+Live Demo At : [Demo]{https://potato-disease-classifier.streamlit.app/}
 
 ## Model Architecture
 
 The model is a Sequential CNN with 6 Conv2D + MaxPooling2D blocks followed by Dense layers:
 
-- Image resizing & rescaling (256×256, pixel values normalized to [0,1])
-- Data augmentation (random flip, rotation)
-- 6 convolutional layers with ReLU activation and max pooling
-- Flatten + Dense(64) + Dense(3) with softmax output
+- We use 256×256images normalized to [0,1])
+- Data is augmented (random flip, rotation)
+- 6 convolutional layers with ReLu and max pooling is used 
+- All followed by flatten and softmax
 
 **Performance**: ~98.8% accuracy on test set.
 
@@ -75,11 +76,3 @@ streamlit run app.py
 ```
 
 The app loads the model directly from Hugging Face Hub — just upload a potato leaf image and get instant classification with confidence scores.
-
-## Push to Hugging Face
-
-Set your token and run:
-```bash
-export HF_TOKEN="your_token"
-python -m src.huggingface.push_to_hub
-```

@@ -1,7 +1,6 @@
 import os
 import keras
 import tensorflow as tf
-import numpy as np
 from huggingface_hub import HfApi, create_repo, upload_file
 from src.config.config import MODELS_DIR, HF_REPO_ID, HF_MODEL_FILENAME, IMAGE_SIZE
 
@@ -16,27 +15,29 @@ def get_latest_model_path():
 
 def convert_savedmodel_to_keras(model_path):
     imported = tf.saved_model.load(model_path)
-    model = tf.keras.Sequential([
-        keras.layers.Resizing(IMAGE_SIZE, IMAGE_SIZE),
-        keras.layers.Rescaling(1.0 / 255),
-        keras.layers.RandomFlip("horizontal_and_vertical"),
-        keras.layers.RandomRotation(0.2),
-        keras.layers.Conv2D(32, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Flatten(),
-        keras.layers.Dense(64, activation='relu'),
-        keras.layers.Dense(3, activation='softmax'),
-    ])
+    model = tf.keras.Sequential(
+        [
+            keras.layers.Resizing(IMAGE_SIZE, IMAGE_SIZE),
+            keras.layers.Rescaling(1.0 / 255),
+            keras.layers.RandomFlip("horizontal_and_vertical"),
+            keras.layers.RandomRotation(0.2),
+            keras.layers.Conv2D(32, (3, 3), activation="relu"),
+            keras.layers.MaxPooling2D((2, 2)),
+            keras.layers.Conv2D(64, (3, 3), activation="relu"),
+            keras.layers.MaxPooling2D((2, 2)),
+            keras.layers.Conv2D(64, (3, 3), activation="relu"),
+            keras.layers.MaxPooling2D((2, 2)),
+            keras.layers.Conv2D(64, (3, 3), activation="relu"),
+            keras.layers.MaxPooling2D((2, 2)),
+            keras.layers.Conv2D(64, (3, 3), activation="relu"),
+            keras.layers.MaxPooling2D((2, 2)),
+            keras.layers.Conv2D(64, (3, 3), activation="relu"),
+            keras.layers.MaxPooling2D((2, 2)),
+            keras.layers.Flatten(),
+            keras.layers.Dense(64, activation="relu"),
+            keras.layers.Dense(3, activation="softmax"),
+        ]
+    )
     model.build((None, IMAGE_SIZE, IMAGE_SIZE, 3))
 
     saved_weights = []
@@ -50,9 +51,9 @@ def convert_savedmodel_to_keras(model_path):
         l.set_weights([saved_weights[i * 2], saved_weights[i * 2 + 1]])
 
     model.compile(
-        optimizer='adam',
+        optimizer="adam",
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
-        metrics=['accuracy'],
+        metrics=["accuracy"],
     )
     return model
 
