@@ -1,6 +1,7 @@
 import os
 import keras
 import tensorflow as tf
+import numpy as np
 from huggingface_hub import HfApi, create_repo, upload_file
 from src.config.config import MODELS_DIR, HF_REPO_ID, HF_MODEL_FILENAME, IMAGE_SIZE
 
@@ -14,10 +15,40 @@ def get_latest_model_path():
 
 
 def convert_savedmodel_to_keras(model_path):
-    layer = keras.layers.TFSMLayer(model_path, call_endpoint='serving_default')
-    inputs = keras.Input(shape=(IMAGE_SIZE, IMAGE_SIZE, 3))
-    outputs = layer(inputs)
-    model = keras.Model(inputs, outputs)
+    imported = tf.saved_model.load(model_path)
+    model = tf.keras.Sequential([
+        keras.layers.Resizing(IMAGE_SIZE, IMAGE_SIZE),
+        keras.layers.Rescaling(1.0 / 255),
+        keras.layers.RandomFlip("horizontal_and_vertical"),
+        keras.layers.RandomRotation(0.2),
+        keras.layers.Conv2D(32, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Flatten(),
+        keras.layers.Dense(64, activation='relu'),
+        keras.layers.Dense(3, activation='softmax'),
+    ])
+    model.build((None, IMAGE_SIZE, IMAGE_SIZE, 3))
+
+    saved_weights = []
+    for i in range(8):
+        lw = getattr(imported, f"layer_with_weights-{i}")
+        saved_weights.append(lw.variables[0].numpy())
+        saved_weights.append(lw.variables[1].numpy())
+
+    trainable_layers = [l for l in model.layers if len(l.get_weights()) > 0]
+    for i, l in enumerate(trainable_layers):
+        l.set_weights([saved_weights[i * 2], saved_weights[i * 2 + 1]])
+
     model.compile(
         optimizer='adam',
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
@@ -34,7 +65,8 @@ def push_to_hub():
     model_path = get_latest_model_path()
     model = convert_savedmodel_to_keras(model_path)
     model.save(HF_MODEL_FILENAME)
-    os.remove("potato-disease-model.h5")
+    if os.path.exists("potato-disease-model.h5"):
+        os.remove("potato-disease-model.h5")
 
     api = HfApi()
     create_repo(repo_id=HF_REPO_ID, token=hf_token, exist_ok=True, repo_type="model")

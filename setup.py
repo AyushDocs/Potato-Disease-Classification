@@ -10,6 +10,6 @@ setup(
         "matplotlib>=3.7.0",
         "huggingface-hub>=0.16.0",
     ],
-    author="Ayush Paudel",
+    author="Ayush Dubey",
     description="Potato disease classification using CNN",
 )

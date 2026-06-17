@@ -29,7 +29,7 @@ def predict(image, model):
 
 st.set_page_config(page_title="Potato Disease Classifier", layout="centered")
 
-st.title(" Potato Disease Classifier")
+st.title("Potato Disease Classifier")
 st.markdown("Upload a potato leaf image to classify it as **Early Blight**, **Late Blight**, or **Healthy**.")
 
 with st.spinner("Loading model from Hugging Face Hub..."):
@@ -38,18 +38,17 @@ with st.spinner("Loading model from Hugging Face Hub..."):
 uploaded_file = st.file_uploader("Choose a potato leaf image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_file)
+    image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_container_width=True)
 
     with st.spinner("Classifying..."):
         class_name, confidence = predict(image, model)
-
-    st.success(f"**Prediction:** {class_name}")
-    st.info(f"**Confidence:** {confidence}%")
 
     emoji_map = {
         "Potato___Early_blight": "⚠️",
         "Potato___Late_blight": "❗",
         "Potato___healthy": "✅",
     }
-    st.markdown(f"{emoji_map.get(class_name, '')} **{class_name.replace('Potato___', '').replace('_', ' ')}**")
+    display_name = class_name.replace("Potato___", "").replace("_", " ")
+    st.markdown(f"{emoji_map.get(class_name, '')} ## {display_name}")
+    st.markdown(f"**Confidence:** {confidence}%")
