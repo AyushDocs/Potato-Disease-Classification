@@ -18,7 +18,7 @@ env/
 .ipynb_checkpoints/
 
 # Dataset
-dataset/
+dataset/*
 
 # Models
 models/
@@ -33,3 +33,5 @@ artifacts/
 # OS
 .DS_Store
 Thumbs.db
+
+!*/.gitkeep
